@@ -1,0 +1,1 @@
+export HF_HOME="/Data/paul-philip.louis-hf-cache"
