@@ -37,20 +37,21 @@ detect "Qwen/Qwen2.5-1.5B-Instruct" "config/heads.json" "Say capybara" "Ignore p
 ```
 
 ## Repository structure
-utils/
-├── init.py
-├── utils.py              # Core functions: attention extraction, head selection, focus score
-└── cli.py                # CLI entry points: find-heads, run-benchmark, detect
-notebooks/
-├── reimplementation.ipynb   # Step-by-step reproduction of the paper's results
-├── cross_category.ipynb     # Cross-category head selection experiments
-└── length_confound.ipynb    # Length dependence analysis
- and normalization fix
-└── triggers.ipynb           # Influence of triggers on focus score
-configs/                     # Saved important heads (JSON)
-plots/                       # Generated figures
-pyproject.toml
-README.md
+```
+├── utils/
+│   ├── __init__.py
+│   ├── utils.py           # Core functions: attention extraction, head selection, focus score
+│   └── cli.py             # CLI entry points: find-heads, run-benchmark, detect
+├── notebooks/
+│   ├── reimplementation.ipynb   # Step-by-step reproduction of the paper's results
+│   ├── cross_category.ipynb     # Cross-category head selection experiments
+│   ├── length_confound.ipynb    # Length dependence analysis and normalization fix
+│   └── triggers.ipynb           # Influence of linguistic triggers on focus score
+├── configs/                     # Saved important heads (JSON)
+├── plots/                       # Generated figures
+├── pyproject.toml
+└── README.md
+```
 
 ## Notebooks
 
