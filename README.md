@@ -59,7 +59,7 @@ Each notebook answers a specific question:
 - **reimplementation.ipynb** — Can I reproduce the paper's detection results from scratch?
 - **cross_category.ipynb** — Do heads selected across attack categories generalize better than single-category heads?
 - **length_confound.ipynb** — Is the focus score truly length-independent? (Spoiler: not without normalization.)
-- 
+- **triggers.ipynb** - What effect do linguistic triggers have on focus score ?
 
 ## References
 
