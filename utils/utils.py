@@ -23,6 +23,7 @@ class Prompt:
     data:str
     attack:str|None = None
 
+DEVICE = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
 
 DATASET = {
     "instruction":"Say capybara",
@@ -103,7 +104,7 @@ def load_model(model_name):
     Returns:
     - model: HookedTransformer
     """
-    model = HookedTransformer.from_pretrained(model_name)
+    model = HookedTransformer.from_pretrained(model_name).to(DEVICE)
     return model
 
 SEP_TOKEN="Data:"
@@ -166,6 +167,26 @@ def get_activations(model: HookedTransformer, prompt: Prompt):
         attention_scores[i] = cache[layers[i]][:, -1, r["inst_start"]:r["inst_end"]].sum(dim=1)
 
     return attention_scores
+
+
+def get_activations_by_token(model, prompt, device):
+    tokenized_prompt = model.to_tokens(prompt).to(device)
+
+    tokenized_prompt_str = model.to_str_tokens(prompt)
+
+    n_layers = model.cfg.n_layers
+    n_heads = model.cfg.n_heads
+    n_tokens = len(tokenized_prompt_str)
+    layers = [f"blocks.{i}.attn.hook_pattern" for i in range(n_layers)]
+
+    _, cache = model.run_with_cache(tokenized_prompt, remove_batch_dim=True, names_filter = layers)
+
+    attention_scores_by_token = torch.zeros(n_layers, n_tokens-1) #remove BOS token
+    for i in range(n_layers): #
+        attention_scores_by_token[i] = 1/n_heads * cache[layers[i]][:, -1, 1:].sum(dim=0)
+        
+    return attention_scores_by_token
+
 
 def get_mean_and_std(model:HookedTransformer, dataset:List[Prompt]):
     s = []
@@ -258,4 +279,56 @@ def run_on_benchmark(model, heads, threshold, benchmark_name):
 
 
 
+
+
+
+########## PLOTTING ############
+
+def plot_attn_by_layer(normal_attention_scores, attack_attention_scores):
+    fig, axes = plt.subplots(ncols=2, figsize=(20,10))
+
+    mesh0 = axes[0].pcolormesh(normal_attention_scores.cpu().numpy(), cmap='YlGnBu')
+    axes[0].set_title("Clean prompt")
+    mesh1 = axes[1].pcolormesh(attack_attention_scores.cpu().numpy(), cmap='YlGnBu')
+    axes[1].set_title("Injected prompt")
+
+    for ax in axes:
+        ax.set_xlabel('Heads')
+        ax.set_ylabel('Layers')
+        ax.invert_yaxis()
+
+    plt.colorbar(mesh0)
+    plt.colorbar(mesh1)
+
+def plot_attn_by_token(norm_attn_by_token, attack_attn_by_token):
+    fig, axes = plt.subplots(ncols=2, figsize=(20,10))
+
+    mesh0 = axes[0].pcolormesh(norm_attn_by_token.T.cpu().numpy(), cmap='YlGnBu')
+    axes[0].set_title("Clean prompt")
+    mesh1 = axes[1].pcolormesh(attack_attn_by_token.T.cpu().numpy(), cmap='YlGnBu')
+    axes[1].set_title("Injected prompt")
+
+    for ax in axes:
+        ax.set_xlabel('Layer')
+        ax.set_ylabel('Token')
+        ax.invert_yaxis()
+
+    plt.colorbar(mesh0)
+    plt.colorbar(mesh1)
+
+def plot_head_scores(scores):
+    fig, axes = plt.subplots(ncols=2, figsize=(20,10))
+
+    mesh0 = axes[0].pcolormesh(scores.cpu().numpy(), cmap='RdBu_r')
+    axes[0].set_title("Visualizing scores")
+    mesh1 = axes[1].pcolormesh((scores>0)*scores.cpu().numpy(), cmap='Reds')
+    axes[1].set_title("Important heads")
+
+    for ax in axes:
+        ax.set_xlabel('Heads')
+        ax.set_ylabel('Layers')
+        ax.invert_yaxis()
+
+    plt.colorbar(mesh0)
+    plt.colorbar(mesh1)
 
