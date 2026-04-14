@@ -14,9 +14,8 @@ def find_heads():
                     )
     print("Parser: done")
     parser.add_argument("model_name", type=str, help="Huggingface name of the model")
-    parser.add_argument("filename", type=str, help="")
+    parser.add_argument("filename", type=str, help="Filename of the json file to dump the list of heads")
     parser.add_argument("--k", nargs='?', default=4, type=int, help="Hyperparameter used for selection of heads. Higher k means fewer heads. Default=4")
-    parser.add_argument('-p', '--plot', action='store_true', help='Plots a figure')
     print("Parsing the arguments")
     args = parser.parse_args()
     print("Loading the model...")
@@ -25,7 +24,8 @@ def find_heads():
     normal_dataset, injected_dataset = utils.generate_dataset()
     print("Finding important heads...")
     heads = utils.find_important_heads(model, normal_dataset, injected_dataset, k=args.k)
-
+    with open(args.filename, "w") as f:
+        json.dump(heads, f)
     print(heads)
 
 def run_benchmark():
