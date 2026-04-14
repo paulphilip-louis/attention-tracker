@@ -1,5 +1,7 @@
 import sys, argparse
+print("Importing transformer_lens...")
 from transformer_lens import HookedTransformer
+print("Import done")
 from utils import utils
 import json
 
@@ -12,16 +14,18 @@ def find_heads():
                     )
     print("Parser: done")
     parser.add_argument("model_name", type=str, help="Huggingface name of the model")
+    parser.add_argument("filename", type=str, help="")
     parser.add_argument("--k", nargs='?', default=4, type=int, help="Hyperparameter used for selection of heads. Higher k means fewer heads. Default=4")
     parser.add_argument('-p', '--plot', action='store_true', help='Plots a figure')
     print("Parsing the arguments")
     args = parser.parse_args()
-    print("Loading the model!")
+    print("Loading the model...")
     model = HookedTransformer.from_pretrained(args.model_name)
-    print("Building dataset!!")
+    print("Building dataset...")
     normal_dataset, injected_dataset = utils.generate_dataset()
-    print("FINDING IMPORTANT HEADS!!!")
+    print("Finding important heads...")
     heads = utils.find_important_heads(model, normal_dataset, injected_dataset, k=args.k)
+
     print(heads)
 
 def run_benchmark():
