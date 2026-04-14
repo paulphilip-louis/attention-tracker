@@ -169,17 +169,19 @@ def get_activations(model: HookedTransformer, prompt: Prompt):
     return attention_scores
 
 
-def get_activations_by_token(model, prompt, device):
-    tokenized_prompt = model.to_tokens(prompt).to(device)
+def get_activations_by_token(model, prompt):
+    r = get_str_with_offsets(model, prompt)
+    
+    tokenized_prompt = model.to_tokens(r["chat"])
 
-    tokenized_prompt_str = model.to_str_tokens(prompt)
+    tokenized_prompt_str = model.to_str_tokens(r["chat"])
 
     n_layers = model.cfg.n_layers
     n_heads = model.cfg.n_heads
     n_tokens = len(tokenized_prompt_str)
     layers = [f"blocks.{i}.attn.hook_pattern" for i in range(n_layers)]
 
-    _, cache = model.run_with_cache(tokenized_prompt, remove_batch_dim=True, names_filter = layers)
+    _, cache = model.run_with_cache(r["chat"], remove_batch_dim=True, names_filter = layers)
 
     attention_scores_by_token = torch.zeros(n_layers, n_tokens-1) #remove BOS token
     for i in range(n_layers): #
